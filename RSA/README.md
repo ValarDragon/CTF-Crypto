@@ -1,6 +1,7 @@
-Factorizer
+RSA Tool
 =======
-This contains code to factor large RSA modulus!
+This contains code to factor large RSA modulii, and perform other related RSA attacks.
+I have used methods in here for every RSA problem I have encountered in CTFs. 
 
 ### Factorization Methods contained:
 

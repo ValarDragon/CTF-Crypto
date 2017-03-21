@@ -9,7 +9,7 @@ import datetime
 
 #TODO Add Sieve improvement to Fermat Attack
 #https://en.wikipedia.org/wiki/Fermat's_factorization_method
-class Factorizer:
+class RSATool:
     """
     RSA Factorization Utility written by Valar_Dragon for use in CTF's.
     It is meant for factorizing large modulii
@@ -238,7 +238,6 @@ class Factorizer:
         https://www.csh.rit.edu/~pat/math/quickies/rho/#algorithm
         This is apparently not the standard definition, and doesn't work well.
         """
-        self.n = n
         xValues = [1]
         i = 2
 
@@ -266,6 +265,97 @@ class Factorizer:
                 i+=1
 
     #-----------------END POLLADS RHO SECTION-----------------#
+    #-----------------INVALID PUBLIC EXPONENT---------------------#
+
+    def invalidPubExponent(self,c,p="p",q="q",e="e"):
+        """Recovers some bytes of ciphertext if n is factored, but e was invalid.
+        (Like e=100) The vast majority of bytes are however lost, as we are taking the
+        GCD(e, totient(N))th root of the Ciphertext. Therefore only the most significant
+        bits of the ciphertext may be recovered.
+        Returns plaintext, since a key can't be formed from a non-integer exponent"""
+        # Explanation of why this works: There exists no modinv if GCD(e,Totient(N)) != 1
+        # but let x be e/GCD
+        # then there is a modular inverse of x to totient n
+        # c = m^(GCDx) mod n
+        # c^(x^-1) = m^GCD mod n, where x^-1 denotes modinv(x,totientN)
+        # Now if we take the GCD-th root
+        # c^(x^-1)^(1/GCD) = m mod n, except that roots aren't an operation defined on modular rings
+        # They are defined on finite fields in some circumstances, but this is not a finite field.
+        # Therefore we have only recovered a few of the most significant bits of c.
+        if(p=="p"): p = self.p
+        if(p=="q"): q = self.q
+        totientN = (p-1)*(q-1)
+        n = p*q
+        if(e=="e"): e = self.e
+        GCD = gcd(e,totientN)
+        if(GCD == 1):
+            return "[X] This method only applies for invalid Public Exponents."
+        d = modinv(e//GCD,totientN)
+        c = pow(c,d,n)
+        import sympy
+        plaintext = sympy.root(c,GCD)
+        return plaintext
+
+    # TODO Implement Coppersmith, and get a quarter d partial key recovery attack
+
+    def halfdPartialKeyRecoveryAttack(self,d0,d0BitSize,nBitSize="nBitSize",n="n",e="e", outFileName=""):
+        """
+            Recovers full private key given more than half of the private key. Links:
+            http://www.ijser.org/researchpaper/Attack_on_RSA_Cryptosystem.pdf
+            http://honors.cs.umd.edu/reports/lowexprsa.pdf
+        """
+        if(n=="n"): n = self.n
+        if(nBitSize == "nBitSize"):
+            import sympy as sp
+            nBitSize = int(sp.floor(sp.log(n)/sp.log(2)) + 1)
+        if(e=="e"): e = self.e
+        test = pow(3, e, n)
+        test2 = pow(5, e, n)
+        if(d0BitSize < nBitSize//2):
+            return "Not enough bits of d0"
+        # The idea is that ed - k(N-p-q+1)=1 by definitions (1)
+        # d < totient(N) since its modInv(e,Totient(n)), so k can't be bigger than e
+        # Therefore k is on range(1,e)
+        # But we don't have totient(N), we have N, so its only an approximation
+        # Proofs are in the links, but if you switch totientN with just N in the above,
+        # and set d' = (k*N + 1)/e ,
+        # the maximum error in d' is 3*sqrt(nBitSize) bits
+        # Thats less than d/2, so we can just replace the least significant bits with d0
+        # and get plaintext
+        for k in range(1,e):
+            # This is guaranteed to be accurate to nBitSize^(1/3),
+            # so we replace last bits with d
+            d = ((k * n + 1) // e)
+            # Chop of last d0 bits of d, and put d0 there.
+            d >>= d0BitSize
+            d <<= d0BitSize
+            d |= d0
+            # This condition must be true from modulo def. (1) And avoids computing many modpows
+            if((e * d) % k == 1):
+                # Were testing that d is valid by decoding two test messages
+                if pow(test, d, n) == 3:
+                    if pow(test2, d, n) == 5:
+                        # From (1)
+                        totientN = (e*d - 1) // k
+                        #totient(N) = (p-1)(q-1) = n - p - q + 1
+                        # p^2 - p^2 - N + N = 0
+                        # p^2 - p^2 - pq + N = 0
+                        # p^2 + (-p -q)p + N = 0
+                        # p^2 + (totient(N) -n -1) + N = 0
+                        # Solving this quadratic for variable p:
+                        b = totientN - n - 1
+                        discriminant = b*b - 4*n
+                        #make sure discriminant is perfect square
+                        root = self.floorSqrt(discriminant)
+                        if(root*root != discriminant):
+                            continue
+                        p = (-b + root) // 2
+                        q = n // p
+                        self.p = p
+                        self.q = q
+                        #print("[*] Factors are: %s and %s" % (self.p,self.q))
+                        return self.generatePrivKey(modulus=n,pubexp=e,outFileName=outFileName)
+
     #---------------BEGIN SHARED ALGORITHM SECTION----------------#
 
 

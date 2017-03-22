@@ -290,7 +290,7 @@ class RSATool:
         GCD = gcd(e,totientN)
         if(GCD == 1):
             return "[X] This method only applies for invalid Public Exponents."
-        d = modinv(e//GCD,totientN)
+        d = self.modinv(e//GCD,totientN)
         c = pow(c,d,n)
         import sympy
         plaintext = sympy.root(c,GCD)

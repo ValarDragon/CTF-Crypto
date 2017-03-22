@@ -228,7 +228,7 @@ class RSATool:
     #-----------------END POLLADS P-1 SECTION-----------------#
     #---------------BEGIN POLLARDS RHO SECTION----------------#
     def f(self,x):
-        return (self.pollardRhoConstant2*x*x + self.pollardRhoConstant1) % self.n
+        return (self.pollardRhoConstant2*x*x + self.pollardRhoConstant1) % self.modulus
 
     def pollardsRho(self,n="modulus",rhoTimeout=5*60):
         if(n=="modulus"): n = self.modulus
@@ -265,7 +265,7 @@ class RSATool:
                 i+=1
 
     #-----------------END POLLADS RHO SECTION-----------------#
-    #-----------------INVALID PUBLIC EXPONENT---------------------#
+    #----------BEGIN INVALID PUBLIC EXPONENT SECTION----------#
 
     def invalidPubExponent(self,c,p="p",q="q",e="e"):
         """Recovers some bytes of ciphertext if n is factored, but e was invalid.
@@ -296,6 +296,8 @@ class RSATool:
         plaintext = sympy.root(c,GCD)
         return plaintext
 
+    #-----------END INVALID PUBLIC EXPONENT SECTION-----------#
+    #-----------BEGIN PARTIAL KEY RECOVERY SECTION------------#
     # TODO Implement Coppersmith, and get a quarter d partial key recovery attack
 
     def halfdPartialKeyRecoveryAttack(self,d0,d0BitSize,nBitSize="nBitSize",n="n",e="e", outFileName=""):
@@ -304,7 +306,7 @@ class RSATool:
             http://www.ijser.org/researchpaper/Attack_on_RSA_Cryptosystem.pdf
             http://honors.cs.umd.edu/reports/lowexprsa.pdf
         """
-        if(n=="n"): n = self.n
+        if(n=="n"): n = self.modulus
         if(nBitSize == "nBitSize"):
             import sympy as sp
             nBitSize = int(sp.floor(sp.log(n)/sp.log(2)) + 1)
@@ -355,7 +357,7 @@ class RSATool:
                         self.q = q
                         #print("[*] Factors are: %s and %s" % (self.p,self.q))
                         return self.generatePrivKey(modulus=n,pubexp=e,outFileName=outFileName)
-
+    #--------------END PARTIAL KEY RECOVERY SECTION---------------#
     #---------------BEGIN SHARED ALGORITHM SECTION----------------#
 
 
@@ -388,7 +390,7 @@ class RSATool:
             raise ValueError
         return x % m
 
-    def generatePrivKey(self, modulus="modulus",pubexp="e",p="p",q="q",outFileName=""):
+    def generatePrivKey(self, modulus="modulus",pubexp="e",p="p",q="q",outFileName="None"):
         if(modulus=="modulus"): modulus = self.modulus
         if(p=="p"): p = self.p
         if(pubexp=="e"): pubexp = self.e
@@ -398,12 +400,27 @@ class RSATool:
         totn = (p-1)*(q-1)
         privexp = self.modinv(pubexp,totn)
         assert p*q == modulus
-        #For some reason, Wieners attack returns "Integers" that throw type errors for not being "ints"
-        #I don't get it, but casting fixes it.
+        #Wieners attack returns "Integers" that throw type errors for not being "ints"
+        #casting fixes this. This is likely due to use of sympy / numpy
         privKey = RSA.construct((modulus,pubexp,int(privexp),int(p),int(q)))
         #Write to File
-        open(outFileName,'bw+').write(privKey.exportKey())
-        print("Wrote private key to file %s " % outFileName)
+        if(outFileName != "None"):
+            open(outFileName,'bw+').write(privKey.exportKey())
+            print("Wrote private key to file %s " % outFileName)
+        return privKey
+
+    def generatePubKey(self, modulus="modulus",pubexp="e",outFileName="None"):
+        if(modulus=="modulus"): modulus = self.modulus
+        if(pubexp=="e"): pubexp = self.e
+        if(outFileName==""): outFileName = self.outFileName
+        if(outFileName==""): outFileName = "RSA_PubKey_%s" % str(datetime.datetime.now())
+
+        pubKey = RSA.construct((modulus,pubexp))
+        #Write to File
+        if(outFileName != "None"):
+            open(outFileName,'bw+').write(privKey.exportKey())
+            print("Wrote public key to file %s " % outFileName)
+        return pubKey
     #----------------END SHARED ALGORITHM SECTION -----------------#
 
 class timeout:

@@ -1,9 +1,10 @@
-CTC Crypto
+CTF Crypto
 =======
 This contains the code I use to perform various Cryptography Attacks in CTFs.
 This only contains attacks on common cryptography systems, not CTF-custom ones.
 
-##RSA Tool
+## RSA Tool
+
 ### Factorization Methods contained:
 
 * Check FactorDB
@@ -19,5 +20,6 @@ This only contains attacks on common cryptography systems, not CTF-custom ones.
 * TODO Partial Key Recovery for n/4 bits of the private key
 * Decoding despite invalid Public Exponent
 
-##Diffie Hellman
+## Diffie Hellman
+
 * Baby Step Giant Step Algorithm

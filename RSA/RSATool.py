@@ -49,10 +49,10 @@ class RSATool:
             return self.generatePrivKey()
         print("[x] Wiener Attack Failed")
 
-        print("[*] Trying Fermat Attack...")
-        self.fermatAttack()
+        print("[*] Trying Sieved Fermat Attack...")
+        self.sieveFermatAttack()
         if(self.p != -1 and self.q != -1):
-            print("[*] Fermat Attack Successful!!")
+            print("[*] Sieved Fermat Attack Successful!!")
             print("[*] Factors are: %s and %s" % (self.p,self.q))
             return self.generatePrivKey()
 
@@ -91,7 +91,7 @@ class RSATool:
                 continue
             print("Factoring key #%s"%i)
             privkey = self.factorModulus(pubkeys[i],outFileName=outFileNameFormat%i)
-            if(privkey == self.keyNotFound):
+            if(type(privkey) == type(self.keyNotFound)):
                 success[i]==False
             else:
                 privkeys.append(privkey)
@@ -106,7 +106,6 @@ class RSATool:
     def checkFactorDB(self, modulus="modulus"):
         """See if the modulus is already factored on factordb.com,
          and if so get the factors"""
-        return
         if(modulus=="modulus"): modulus = self.modulus
         # Factordb gives id's of numbers, which act as links for full number
         # follow the id's and get the actual numbers
@@ -161,8 +160,7 @@ class RSATool:
             return True
         return False
 
-    #TODO Implement Sieve improvement!
-    #(https://en.wikipedia.org/wiki/Fermat's_factorization_method#Sieve_improvement)
+    #Algo src: https://en.wikipedia.org/wiki/Fermat's_factorization_method
     #Fermat factorization method written by me, inspired from wikipedia :D
     def fermatAttack(self,N="modulus",limit=100,fermatTimeout=3*60):
         if(N=="modulus"): N = self.modulus
@@ -197,15 +195,32 @@ class RSATool:
                 squaresModSieve[mod].append(num)
         return squaresModSieve
 
+    # Create an array of possible a values for this N and sieveModulus
+    # What we're doing is using that only a few numbers can be squares mod Sieve,
+    # you use the idea that a^2 mod x, can only be a few different values.
+    # b^2 = a^2 - N, so taking everything mod x, b^2 must also be one of those few different values
+    # So the candidateA, are a who when squared, and subtracted by N, are still a number
+    # that COULD potentially be a square mod x. This lowers our brute space in the Fermat Attack!
+    def getCandidateA(self,sieveModulus,N="RSA modulus"):
+        nModSieve = N % sieveModulus
+        squaresModSieve = self.genSquaresModSieve(sieveModulus)
+        candidateA = []
+
+        # potential a values:
+        for mod in squaresModSieve:
+            if(((mod - nModSieve) % sieveModulus) in squaresModSieve):
+                for x in squaresModSieve[mod]:
+                    candidateA.append(x)
+        return candidateA
     # https://en.wikipedia.org/wiki/Fermat's_factorization_method#Sieve_improvement
     # This code is based upon the sieve improvement presented there.
-    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=20,limit=100,fermatTimeout=3*60):
+    # Limit is the number of a's to try.
+    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=31,limit=100,fermatTimeout=3*60):
         if(N=="RSA modulus"): N = self.modulus
         try:
             with timeout(seconds=fermatTimeout):
-                nModSieve = N % sieveModulus
                 GCD = gcd(sieveModulus,N)
-                #This lets me remove 0 from genSquaresModSieve, potentially boosting times
+                #This lets me remove 0 from genSquaresModSieve, thus boosting times
                 if(GCD != 1):
                     self.p = GCD
                     self.q = N // GCD
@@ -213,15 +228,9 @@ class RSATool:
 
                 # squaresModSieve format is the key = a^2 % sieveModulus, value is array of possible a % sieveModulus
                 squaresModSieve = self.genSquaresModSieve(sieveModulus)
-                candidateA = []
-
-                # potential a values:
-                for mod in squaresModSieve:
-                    print((mod - nModSieve) % sieveModulus)
-                    if(((mod - nModSieve) % sieveModulus) in squaresModSieve):
-                        for x in squaresModSieve[mod]:
-                            candidateA.append(x)
-                print("%s %% faster than standard Fermat Factorization" % (100*len(candidateA)/sieveModulus))
+                candidateA = self.getCandidateA(sieveModulus,N)
+                limit = limit // len(candidateA)
+                print("[*] %s %% faster than standard Fermat Factorization" % (100*len(candidateA)/sieveModulus))
                 a = self.floorSqrt(N)+1
                 a = a - (a%sieveModulus)
                 b2 = a*a - N
@@ -242,11 +251,24 @@ class RSATool:
                                 return
                     a = a+sieveModulus
                 if(i==limit-1):
-                    print("[x] Fermat Iteration Limit Exceeded")
-                    print(i)
+                    print("[x] Sieved Fermat Iteration Limit Exceeded")
 
         except TimeoutError:
             print("[x] Sieved Fermat Timeout Exceeded")
+
+    # Brute forces which SieveModulus has the least amount of candidates per sieveMod
+    # I reccomend using startVal > 10, lower than that, I don't really trust the result
+
+    def bruteBestSieveModulus(self,startVal,endVal,N="RSA modulus"):
+        if(N=="RSA modulus"): N = self.modulus
+        # index 0 = % speed up, index 1 = what the SieveMod is
+        bestSpeedUp = [-1,-1]
+        for sieveModulus in range(startVal,endVal):
+            candidateA = self.getCandidateA(sieveModulus,N)
+            speedUp = len(candidateA)/sieveModulus
+            if(speedUp > bestSpeedUp[0]):
+                bestSpeedUp = [speedUp,sieveModulus]
+        return bestSpeedUp[1]
 
     #------------END Fermat Factorization SECTION-------------#
     #----------------BEGIN POLLARDS P-1 SECTION---------------#

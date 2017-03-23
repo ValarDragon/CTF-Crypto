@@ -10,11 +10,10 @@ This only contains attacks on common cryptography systems, not custom cryptosyst
 
 * Check FactorDB
 * GCD for Multiple keys
-* Fermat Factorization
+* Sieved Fermat Factorization
 * Wiener Attack
 * Pollards P-1 (Not a good implementation)
 * Pollards Rho (Fairly Broken)
-
 
 ### RSA specific methods
 * Partial Key Recovery for n/2 bits of the private key

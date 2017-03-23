@@ -7,12 +7,12 @@ class DiscreteLogarithmSolver:
         Output: A value x satisfying g^x = β mod p
 
         This is essentially a space time trade-off attack. The amount of space needed can be quite large for not that large p.
-        ( > 8 gb) hence the input() statement. 
+        ( > 8 gb) hence the input() statement.
         """
         if(m=="m"):
             m = self.floorSqrt(p) + 1
         if(m > 50000000):
-            cont = input("m is large, %s, this may eat up all your available RAM. Type 'Y/y/yes' to continue\n" % m).lower()
+            cont = input("m is large (%s), this may eat up all your available RAM. Type 'Y' to continue\n" % m).lower()
             if(cont != 'y' and cont != 'yes'):
                 return -2
         gInverse = self.modinv(pow(g,m,p),p)

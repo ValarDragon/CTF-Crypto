@@ -148,6 +148,7 @@ class RSATool:
     #----------------END WIENER ATTACK SECTION----------------#
     #-----------BEGIN Fermat Factorization SECTION------------#
 
+    # Maybe make this take a bigger lastDig?
     def isLastDigitPossibleSquare(self,x):
         if(x < 0):
             return False
@@ -184,8 +185,68 @@ class RSATool:
         except TimeoutError:
             print("[x] Fermat Timeout Exceeded")
 
+    def genSquaresModSieve(self,sieve):
+        squaresModSieve = {}
+        #Range not starting from 0, because we have already checked that
+        # N % sieve != 0
+        for num in range(1,sieve):
+            mod = (num*num) % sieve
+            if mod not in squaresModSieve:
+                squaresModSieve[mod] = [num]
+            else:
+                squaresModSieve[mod].append(num)
+        return squaresModSieve
+
+    # https://en.wikipedia.org/wiki/Fermat's_factorization_method#Sieve_improvement
+    # This code is based upon the sieve improvement presented there.
+    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=20,limit=100,fermatTimeout=3*60):
+        if(N=="RSA modulus"): N = self.modulus
+        try:
+            with timeout(seconds=fermatTimeout):
+                nModSieve = N % sieveModulus
+                GCD = gcd(sieveModulus,N)
+                #This lets me remove 0 from genSquaresModSieve, potentially boosting times
+                if(GCD != 1):
+                    self.p = GCD
+                    self.q = N // GCD
+                    return
+
+                # squaresModSieve format is the key = a^2 % sieveModulus, value is array of possible a % sieveModulus
+                squaresModSieve = self.genSquaresModSieve(sieveModulus)
+                candidateA = []
+
+                # potential a values:
+                for mod in squaresModSieve:
+                    print((mod - nModSieve) % sieveModulus)
+                    if(((mod - nModSieve) % sieveModulus) in squaresModSieve):
+                        for x in squaresModSieve[mod]:
+                            candidateA.append(x)
+                print("%s %% faster than standard Fermat Factorization" % (100*len(candidateA)/sieveModulus))
+                a = self.floorSqrt(N)+1
+                a = a - (a%sieveModulus)
+                b2 = a*a - N
 
 
+                for i in range(limit):
+                    for aModSieve in candidateA:
+                        aPlusMod = a + aModSieve
+                        b2 = aPlusMod*aPlusMod-N
+                        if(b2 < 0):
+                            continue
+                        if(self.isLastDigitPossibleSquare(b2)):
+                            b = self.floorSqrt(b2)
+                            if(pow(b,2) == b2):
+                                #We found the factors!
+                                self.p = aPlusMod+b
+                                self.q = aPlusMod-b
+                                return
+                    a = a+sieveModulus
+                if(i==limit-1):
+                    print("[x] Fermat Iteration Limit Exceeded")
+                    print(i)
+
+        except TimeoutError:
+            print("[x] Sieved Fermat Timeout Exceeded")
 
     #------------END Fermat Factorization SECTION-------------#
     #----------------BEGIN POLLARDS P-1 SECTION---------------#

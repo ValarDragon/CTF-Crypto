@@ -160,8 +160,9 @@ class RSATool:
             return True
         return False
 
-    #Algo src: https://en.wikipedia.org/wiki/Fermat's_factorization_method
-    #Fermat factorization method written by me, inspired from wikipedia :D
+    # https://en.wikipedia.org/wiki/Fermat's_factorization_method
+    # Fermat factorization method written by me, inspired from wikipedia :D
+    # Limit is the number of a's to try.
     def fermatAttack(self,N="modulus",limit=100,fermatTimeout=3*60):
         if(N=="modulus"): N = self.modulus
         try:
@@ -199,7 +200,7 @@ class RSATool:
     # What we're doing is using that only a few numbers can be squares mod Sieve,
     # you use the idea that a^2 mod x, can only be a few different values.
     # b^2 = a^2 - N, so taking everything mod x, b^2 must also be one of those few different values
-    # So the candidateA, are a who when squared, and subtracted by N, are still a number
+    # So the candidateA, are values of a, which when squared and subtracted by N, are still a number
     # that COULD potentially be a square mod x. This lowers our brute space in the Fermat Attack!
     def getCandidateA(self,sieveModulus,N="RSA modulus"):
         nModSieve = N % sieveModulus
@@ -229,6 +230,7 @@ class RSATool:
                 # squaresModSieve format is the key = a^2 % sieveModulus, value is array of possible a % sieveModulus
                 squaresModSieve = self.genSquaresModSieve(sieveModulus)
                 candidateA = self.getCandidateA(sieveModulus,N)
+                # Redefine limit accordingly.
                 limit = limit // len(candidateA)
                 print("[*] %s %% faster than standard Fermat Factorization" % (100*len(candidateA)/sieveModulus))
                 a = self.floorSqrt(N)+1
@@ -383,7 +385,7 @@ class RSATool:
     #-----------BEGIN PARTIAL KEY RECOVERY SECTION------------#
     # TODO Implement Coppersmith, and get a quarter d partial key recovery attack
 
-    def halfdPartialKeyRecoveryAttack(self,d0,d0BitSize,nBitSize="nBitSize",n="n",e="e", outFileName=""):
+    def halfdPartialKeyRecoveryAttack(self,d0,d0BitSize,nBitSize="nBitSize",n="n",e="e", outFileName="None"):
         """
             Recovers full private key given more than half of the private key. Links:
             http://www.ijser.org/researchpaper/Attack_on_RSA_Cryptosystem.pdf

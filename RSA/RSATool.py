@@ -5,10 +5,10 @@ import re
 import signal
 import wienerAttack
 import datetime
-#Note this file is Linux only because of usage of signal.
+# Note this file is Linux only because of usage of signal.
 
-#TODO Add Sieve improvement to Fermat Attack
-#https://en.wikipedia.org/wiki/Fermat's_factorization_method
+# TODO Add Sieve improvement to Fermat Attack
+# https://en.wikipedia.org/wiki/Fermat's_factorization_method
 class RSATool:
     """
     RSA Factorization Utility written by Valar_Dragon for use in CTF's.
@@ -213,26 +213,30 @@ class RSATool:
                 for x in squaresModSieve[mod]:
                     candidateA.append(x)
         return candidateA
+
+
     # https://en.wikipedia.org/wiki/Fermat's_factorization_method#Sieve_improvement
     # This code is based upon the sieve improvement presented there.
     # Limit is the number of a's to try.
-    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=31,limit=100,fermatTimeout=3*60):
+    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=1800,limit=1000,fermatTimeout=3*60):
         if(N=="RSA modulus"): N = self.modulus
         try:
             with timeout(seconds=fermatTimeout):
-                GCD = gcd(sieveModulus,N)
-                #This lets me remove 0 from genSquaresModSieve, thus boosting times
-                if(GCD != 1):
-                    self.p = GCD
-                    self.q = N // GCD
-                    return
 
-                # squaresModSieve format is the key = a^2 % sieveModulus, value is array of possible a % sieveModulus
-                squaresModSieve = self.genSquaresModSieve(sieveModulus)
+                # ASSUME THAT N is not divisible by anything in sieveModulus
+                # confirm via small primes first.
+                #This lets me remove 0 from genSquaresModSieve, thus boosting times
+                # GCD = gcd(sieveModulus,N)
+                # if(GCD != 1):
+                #     self.p = GCD
+                #     self.q = N // GCD
+                #     return
+
                 candidateA = self.getCandidateA(sieveModulus,N)
+                #print(candidateA)
                 # Redefine limit accordingly.
                 limit = limit // len(candidateA)
-                print("[*] %s %% faster than standard Fermat Factorization" % (100*len(candidateA)/sieveModulus))
+                print("[*] %s %% faster than standard Fermat Factorization" % (100-100*len(candidateA)/sieveModulus))
                 a = self.floorSqrt(N)+1
                 a = a - (a%sieveModulus)
                 b2 = a*a - N
@@ -267,7 +271,7 @@ class RSATool:
         bestSpeedUp = [-1,-1]
         for sieveModulus in range(startVal,endVal):
             candidateA = self.getCandidateA(sieveModulus,N)
-            speedUp = len(candidateA)/sieveModulus
+            speedUp = 1-len(candidateA)/sieveModulus
             if(speedUp > bestSpeedUp[0]):
                 bestSpeedUp = [speedUp,sieveModulus]
         return bestSpeedUp[1]
@@ -445,6 +449,59 @@ class RSATool:
     #--------------END PARTIAL KEY RECOVERY SECTION---------------#
     #---------------BEGIN SHARED ALGORITHM SECTION----------------#
 
+    #moduliiValueDictionary is a dictionary with key = modulus, value = array of possible values
+    def chineseRemainderTheorem(self,moduliiValueDictionary):
+        # CRT These to get even smaller value in end array
+        # Don't the 'cheap' solution of just modding everything in multiple
+        # Since that will not scale well
+
+        # Now we have to iterate through every combination of elements in each array
+        # We can be slightly inefficient, and just keep CRT'ing 2 arrays at a time
+        # one array being new array, other array being prevIteration
+
+        # CRT first two arrays
+        keys = list(moduliiValueDictionary.keys())
+        curCRTCandidateA = []
+        M = keys[0]*keys[1]
+
+        # M // sieveModulus[0] = sieveModulus[1]
+
+        b0 = self.modinv(M // keys[0],keys[0])
+        b1 = self.modinv(M // keys[1],keys[1])
+        print("b0 %s, b1 %s" % (b0,b1))
+
+        for element0 in moduliiValueDictionary[keys[0]]:
+            ab0 = element0*b0* keys[1]
+            for element1 in moduliiValueDictionary[keys[1]]:
+                print("e0 %s, e1 %s" % (element0,element1))
+                ab1 = element1*b1 * keys[0]
+                print(ab0 + ab1)
+                curCRTCandidateA.append((ab0 + ab1) % M)
+
+        del moduliiValueDictionary[keys[0]]
+        del keys[0]
+        del moduliiValueDictionary[keys[0]]
+        del keys[0]
+        oldCRTCandidateA = curCRTCandidateA
+
+        while(len(keys) > 0):
+            print('test')
+            oldCRTModulus = M
+            curCRTCandidateA = []
+            M = M * keys[0]
+
+            b0 = self.modinv(keys[0] ,oldCRTModulus)
+            b1 = self.modinv(oldCRTModulus,keys[0])
+
+            for element0 in oldCRTCandidateA:
+                ab0 = element0*b0*keys[0]
+                for element1 in moduliiValueDictionary[keys[0]]:
+                    ab1 = element1*b1*oldCRTModulus
+                    curCRTCandidateA.append((ab0 + ab1) % M)
+
+            del keys[0]
+
+        return curCRTCandidateA,M
 
     def floorSqrt(self,n):
         x = n

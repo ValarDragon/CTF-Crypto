@@ -56,6 +56,14 @@ class RSATool:
             print("[*] Factors are: %s and %s" % (self.p,self.q))
             return self.generatePrivKey()
 
+        print("[*] Trying Small Primes Factorization...")
+        self.smallPrimes()
+        if(self.p != -1 and self.q != -1):
+            print("[*] Small Primes Factorization Successful!!")
+            print("[*] Factors are: %s and %s" % (self.p,self.q))
+            return self.generatePrivKey()
+        print("[x] Small Primes Factorization Failed")
+
         print("[*] Trying Pollards P-1 Attack...")
         self.pollardPminus1()
         if(self.p != -1 and self.q != -1):
@@ -188,13 +196,28 @@ class RSATool:
         squaresModSieve = {}
         #Range not starting from 0, because we have already checked that
         # N % sieve != 0
-        for num in range(1,sieve):
-            mod = (num*num) % sieve
-            if mod not in squaresModSieve:
-                squaresModSieve[mod] = [num]
-            else:
-                squaresModSieve[mod].append(num)
-        return squaresModSieve
+        # Use property that (a-x)^2 mod a = x^2 mod a
+        if(sieve%2 == 0):
+            sieve2 = sieve // 2
+            for num in range(1,sieve2+1):
+                mod = (num*num) % sieve
+                if mod not in squaresModSieve:
+                    squaresModSieve[mod] = [num]
+                else:
+                    squaresModSieve[mod].append(num)
+                if(num != sieve2):
+                    squaresModSieve[mod].append(sieve-num)
+            return squaresModSieve
+        else:
+            # There is a duplication issue using the above halving of the sieve.
+            # and I don't want to add a delay by doing a search for duplicate values
+            for num in range(1,sieve):
+                mod = (num*num) % sieve
+                if mod not in squaresModSieve:
+                    squaresModSieve[mod] = [num]
+                else:
+                    squaresModSieve[mod].append(num)
+            return squaresModSieve
 
     # Create an array of possible a values for this N and sieveModulus
     # What we're doing is using that only a few numbers can be squares mod Sieve,
@@ -202,7 +225,7 @@ class RSATool:
     # b^2 = a^2 - N, so taking everything mod x, b^2 must also be one of those few different values
     # So the candidateA, are values of a, which when squared and subtracted by N, are still a number
     # that COULD potentially be a square mod x. This lowers our brute space in the Fermat Attack!
-    def getCandidateA(self,sieveModulus,N="RSA modulus"):
+    def getCandidateA(self,sieveModulus,N="RSA modulus",secondIter=False):
         nModSieve = N % sieveModulus
         squaresModSieve = self.genSquaresModSieve(sieveModulus)
         candidateA = []
@@ -212,13 +235,26 @@ class RSATool:
             if(((mod - nModSieve) % sieveModulus) in squaresModSieve):
                 for x in squaresModSieve[mod]:
                     candidateA.append(x)
+
+        # any number thats a solution mod x, must also be a solution mod 2x
+        # and vice versa. Depending on N and the sieve used, it can save many modulii
+        # from being checked. Un comment print statement to see effect.
+        if(not secondIter):
+            if(sieveModulus % 2 == 0):
+                candidateA2 = self.getCandidateA(sieveModulus*2, N=N, secondIter = True)
+                candidateAFinal = []
+                for i in candidateA:
+                    if(i in candidateA2):
+                        candidateAFinal.append(i)
+                # print("%s numbers per modular ring are saved" % (len(candidateA) - len(candidateAFinal)))
+                return candidateAFinal
         return candidateA
 
 
     # https://en.wikipedia.org/wiki/Fermat's_factorization_method#Sieve_improvement
     # This code is based upon the sieve improvement presented there.
     # Limit is the number of a's to try.
-    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=1800,limit=1000,fermatTimeout=3*60):
+    def sieveFermatAttack(self,N="RSA modulus",sieveModulus=4500,limit=1000,fermatTimeout=3*60):
         if(N=="RSA modulus"): N = self.modulus
         try:
             with timeout(seconds=fermatTimeout):
@@ -233,7 +269,7 @@ class RSATool:
                 #     return
 
                 candidateA = self.getCandidateA(sieveModulus,N)
-                #print(candidateA)
+                # print(candidateA)
                 # Redefine limit accordingly.
                 limit = limit // len(candidateA)
                 print("[*] %s %% faster than standard Fermat Factorization" % (100-100*len(candidateA)/sieveModulus))
@@ -277,6 +313,17 @@ class RSATool:
         return bestSpeedUp[1]
 
     #------------END Fermat Factorization SECTION-------------#
+    #----------------BEGIN SMALL PRIME SECTION----------------#
+    def smallPrimes(self,N="modulus",upperlimit=1000000):
+        if(N=="modulus"): N = self.modulus
+        from sympy import sieve
+        for i in sieve.primerange(1,upperlimit):
+            if(N % i == 0):
+                self.p = i
+                self.q = N // i
+                return
+
+    #------------------END SMALL PRIME SECTION----------------#
     #----------------BEGIN POLLARDS P-1 SECTION---------------#
 
     #Pollard P minus 1 factoring, using the algorithm as described by
@@ -466,16 +513,13 @@ class RSATool:
 
         # M // sieveModulus[0] = sieveModulus[1]
 
-        b0 = self.modinv(M // keys[0],keys[0])
-        b1 = self.modinv(M // keys[1],keys[1])
-        print("b0 %s, b1 %s" % (b0,b1))
+        b0 = self.modinv(keys[1],keys[0])
+        b1 = self.modinv(keys[0],keys[1])
 
         for element0 in moduliiValueDictionary[keys[0]]:
             ab0 = element0*b0* keys[1]
             for element1 in moduliiValueDictionary[keys[1]]:
-                print("e0 %s, e1 %s" % (element0,element1))
                 ab1 = element1*b1 * keys[0]
-                print(ab0 + ab1)
                 curCRTCandidateA.append((ab0 + ab1) % M)
 
         del moduliiValueDictionary[keys[0]]
@@ -485,7 +529,6 @@ class RSATool:
         oldCRTCandidateA = curCRTCandidateA
 
         while(len(keys) > 0):
-            print('test')
             oldCRTModulus = M
             curCRTCandidateA = []
             M = M * keys[0]

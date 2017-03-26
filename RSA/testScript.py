@@ -39,6 +39,8 @@ def checkSievedFermatAttack():
     if(tool.q == q or tool.q == p):
         print("Sieved Fermat Factorization Check Passed")
     else:
+        print("[x] q = %s" % tool.q)
+        print("[x] p = %s" % tool.p)
         print("[x] Sieved Fermat Factorization Check FAILED")
 
 def checkBrokenPublicExponent():

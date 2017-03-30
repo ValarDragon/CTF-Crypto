@@ -323,7 +323,26 @@ class RSATool:
                 self.q = N // i
                 return
 
-    #------------------END SMALL PRIME SECTION----------------#
+    #-----------------END SMALL PRIME SECTION-----------------#
+    #--------------BEGIN HASTADS ATTACK SECTION---------------#
+    def hastads(self,NArray,CiphertextArray,pubexp="pubexp"):
+        # Indices of NArrays match up with CiphertextArray
+        if(len(NArray) != len(CiphertextArray)):
+            return "Length of Modulii array and CiphertextArray are not equal"
+        if(pubexp == "pubexp"):
+            pubexp = len(NArray)
+        if(pubexp < len(NArray)):
+            return "Not enough Modulii / Ciphertext pairs"
+        ModulusValueArray = {}
+        for i in range(pubexp):
+            ModulusValueArray[NArray[i]] = [CiphertextArray[i]]
+        CRTVal,modulus = self.chineseRemainderTheorem(ModulusValueArray)
+        import sympy as sp
+        CRTVal = CRTVal[0]
+        msg = sp.root(CRTVal,pubexp)
+        return msg
+
+    #---------------END HASTADS ATTACK SECTION----------------#
     #----------------BEGIN POLLARDS P-1 SECTION---------------#
 
     #Pollard P minus 1 factoring, using the algorithm as described by
@@ -498,10 +517,6 @@ class RSATool:
 
     #moduliiValueDictionary is a dictionary with key = modulus, value = array of possible values
     def chineseRemainderTheorem(self,moduliiValueDictionary):
-        # CRT These to get even smaller value in end array
-        # Don't the 'cheap' solution of just modding everything in multiple
-        # Since that will not scale well
-
         # Now we have to iterate through every combination of elements in each array
         # We can be slightly inefficient, and just keep CRT'ing 2 arrays at a time
         # one array being new array, other array being prevIteration

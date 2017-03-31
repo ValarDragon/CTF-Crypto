@@ -338,8 +338,7 @@ class RSATool:
             ModulusValueArray[NArray[i]] = [CiphertextArray[i]]
         CRTVal,modulus = self.chineseRemainderTheorem(ModulusValueArray)
         import sympy as sp
-        CRTVal = CRTVal[0]
-        msg = sp.root(CRTVal,pubexp)
+        msg = sp.root(CRTVal[0],pubexp)
         return msg
 
     #---------------END HASTADS ATTACK SECTION----------------#
@@ -601,7 +600,7 @@ class RSATool:
         privexp = self.modinv(pubexp,totn)
         assert p*q == modulus
         #Wieners attack returns "Integers" that throw type errors for not being "ints"
-        #casting fixes this. This is likely due to use of sympy / numpy
+        #casting fixes this. This is likely due to use of sympy
         privKey = RSA.construct((modulus,pubexp,int(privexp),int(p),int(q)))
         #Write to File
         if(outFileName != "None"):

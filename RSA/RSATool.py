@@ -75,7 +75,7 @@ class RSATool:
 
     def factorModulii(self,pubkeys,outFileNameFormat="privkey-%s.pem"):
         success = [-1]*len(pubkeys)
-        privkeys = []
+        privkeys = [-1] * len(pubkeys)
         print("[*] Trying multi-key attacks")
         print("[*] Searching for common factors (GCD Attack)")
         for i in range(len(pubkeys)):
@@ -89,7 +89,7 @@ class RSATool:
                     print("[*] Generating respective privatekeys")
                     for k in [i,j]:
                         success[k]=True
-                        privkeys.append(self.generatePrivKey(modulus=pubkeys[k].n,
+                        privkeys[k] = (self.generatePrivKey(modulus=pubkeys[k].n,
                             pubexp=pubkeys[k].e,p=greatestCommonDivisor,
                             q=pubkeys[k].n//greatestCommonDivisor,
                             outFileName=outFileNameFormat%k))
@@ -102,11 +102,9 @@ class RSATool:
             if(type(privkey) == type(self.keyNotFound)):
                 success[i]==False
             else:
-                privkeys.append(privkey)
+                privkeys[i] = (privkey)
                 success[i]==True
-
-
-
+        return privkeys
 
 
     #----------------BEGIN FACTOR DB SECTION------------------#

@@ -22,7 +22,8 @@ Note that this is Linux only, due to my usage of "signal" for timeouts.
 * Partial Key Recovery for n/2 bits of the private key
 * TODO Partial Key Recovery for n/4 bits of the private key
 * Decoding despite invalid Public Exponent
-* Hastads attack
+* Hastad's Attack
+* Franklin Reiter Related Message Attack
 
 ## Diffie Hellman
 

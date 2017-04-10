@@ -4,7 +4,6 @@
 **.pyo
 **.pyd
 **.log
-**.sage.py
 firstRun.conf
 __pycache__/
 **/__pycache__

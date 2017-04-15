@@ -509,6 +509,27 @@ class RSATool:
                         self.q = q
                         #print("[*] Factors are: %s and %s" % (self.p,self.q))
                         return self.generatePrivKey(modulus=n,pubexp=e,outFileName=outFileName)
+
+    
+    def dpPartialKeyRecoveryAttack(self,dp,n="n",e="e", outFileName="None"):
+        """
+            Recovers full private key given d_p for CRT version of RSA. Links:
+            https://www.iacr.org/archive/crypto2003/27290027/27290027.pdf
+        """
+        if(n=="n"): n = self.modulus
+        if(e=="e"): e = self.e
+        test = pow(3, e, n)
+        test2 = pow(5, e, n)
+
+        for k in range(1,e):
+            if((e * dp) % k == 1):
+                p = (e * dp - 1 + k) // k
+                if(n%p==0):
+                    q = n // p
+                    self.p = p
+                    self.q = q
+
+                    return self.generatePrivKey(modulus=n,pubexp=e,outFileName=outFileName)
     #--------------END PARTIAL KEY RECOVERY SECTION---------------#
     #---------------BEGIN SHARED ALGORITHM SECTION----------------#
 

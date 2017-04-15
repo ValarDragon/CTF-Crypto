@@ -417,6 +417,30 @@ class RSATool:
                 i+=1
 
     #-----------------END POLLADS RHO SECTION-----------------#
+    #---------------BEGIN COMMON MODULUS ATTACK---------------#\
+    def commonModulusPubExpSamePlainText(self,e1,e2,c1,c2,n="n"):
+        """
+            Solves for message if you have two ciphertexts of the same message
+            encrypted with different public exponents and same modulus.
+            Source: https://crypto.stackexchange.com/questions/16283/how-to-use-common-modulus-attack
+        """
+        if(n=="n"): n = self.modulus
+        GCD, s1, s2 = self.extended_gcd(e1, e2)
+        assert GCD == 1
+        assert s1*e1 + s2*e2 == 1
+        message = 1
+        if(s1 < 0):
+            inv = self.modinv(c1,n)
+            message = message*pow(inv,-1*s1,n) % n
+            message = message*pow(c2,s2,n) %n
+        elif(s2 < 0):
+            inv = self.modinv(c2,n)
+            message = message*pow(inv,-1*s2,n) % n
+            message = message*pow(c1,s1,n) %n
+        else:
+            message = pow(c1,s1,n)*pow(c2,s2,n) % n
+        return message
+    #----------------END COMMON MODULUS ATTACK----------------#
     #----------BEGIN INVALID PUBLIC EXPONENT SECTION----------#
 
     def invalidPubExponent(self,c,p="p",q="q",e="e"):
@@ -510,7 +534,7 @@ class RSATool:
                         #print("[*] Factors are: %s and %s" % (self.p,self.q))
                         return self.generatePrivKey(modulus=n,pubexp=e,outFileName=outFileName)
 
-    
+
     def dpPartialKeyRecoveryAttack(self,dp,n="n",e="e", outFileName="None"):
         """
             Recovers full private key given d_p for CRT version of RSA. Links:
@@ -518,8 +542,6 @@ class RSATool:
         """
         if(n=="n"): n = self.modulus
         if(e=="e"): e = self.e
-        test = pow(3, e, n)
-        test2 = pow(5, e, n)
 
         for k in range(1,e):
             if((e * dp) % k == 1):

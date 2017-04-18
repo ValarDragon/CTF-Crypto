@@ -12,7 +12,7 @@ def loadBostonKeyPartyPEMs():
 def main():
     loadBostonKeyPartyPEMs()
 
-    print("Checking factorModulii with Boston Key Party keys")
+    print("[#] Checking factorModulii with Boston Key Party keys")
     # CHECK FOR ERRORS:
     # key-0, key-6 is GCD
     # key-1 is Fermat Attack
@@ -21,13 +21,13 @@ def main():
     # key-4 is KEY NOT FOUND
     # key-5 is P-1 attack
     tool.factorModulii(keys,'/tmp/privkey-%s.pem')
-    print("Boston Key Party Checks completed")
+    print("[*] Boston Key Party Checks completed")
 
-    print("Checking Sieved Fermat Attack")
+    print("[#] Checking Sieved Fermat Attack")
     checkSievedFermatAttack()
-    print("Checking broken pub exp attack")
+    print("[#] Checking broken pub exp attack")
     checkBrokenPublicExponent()
-    print("Checking Half D Partial Key Recovery")
+    print("[#] Checking Half D Partial Key Recovery")
     checkHalfdPartialKeyRecoveryAttack()
 
 def checkSievedFermatAttack():
@@ -37,7 +37,7 @@ def checkSievedFermatAttack():
     q = int("2,300,942,549".replace(',',''))
     tool.sieveFermatAttack(p*q,limit=100000000)
     if(tool.q == q or tool.q == p):
-        print("Sieved Fermat Factorization Check Passed")
+        print("[*] Sieved Fermat Factorization Check Passed")
     else:
         print("[x] q = %s" % tool.q)
         print("[x] p = %s" % tool.p)

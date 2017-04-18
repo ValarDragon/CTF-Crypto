@@ -23,9 +23,13 @@ class RSATool:
         self.pollardRhoConstant2 = 1
         self.keyNotFound = "key not found"
 
-    def factorModulus(self,pubKey,outFileName=""):
-        self.e = pubKey.e
-        self.modulus = pubKey.n
+    def factorModulus(self,pubKey="pubkey",e="e",n="n",outFileName=""):
+        if(type(pubKey)==type("pubkey")):
+            self.e = e
+            self.modulus = n
+        else:
+            self.e = pubKey.e
+            self.modulus = pubKey.n
         self.outFileName = outFileName
         self.p = -1
         self.q = -1
@@ -109,10 +113,10 @@ class RSATool:
 
     #----------------BEGIN FACTOR DB SECTION------------------#
 
-    def checkFactorDB(self, modulus="modulus"):
+    def checkFactorDB(self, n="n"):
         """See if the modulus is already factored on factordb.com,
          and if so get the factors"""
-        if(modulus=="modulus"): modulus = self.modulus
+        if(n=="n"): n = self.modulus
         # Factordb gives id's of numbers, which act as links for full number
         # follow the id's and get the actual numbers
         r = requests.get('http://www.factordb.com/index.php?query=%i' % self.modulus)
@@ -137,12 +141,12 @@ class RSATool:
     #------------------END FACTOR DB SECTION------------------#
     #---------------BEGIN WIENER ATTACK SECTION---------------#
     #This comes from  https://github.com/sourcekris/RsaCtfTool/blob/master/wiener_attack.py
-    def wienerAttack(self,modulus="modulus",pubexp="e",wienerTimeout=3*60):
-        if(modulus=="modulus"): modulus = self.modulus
-        if(pubexp=="e"): pubexp = self.e
+    def wienerAttack(self,n="n",e="e",wienerTimeout=3*60):
+        if(n=="n"): n = self.modulus
+        if(e=="e"): e = self.e
         try:
             with timeout(seconds=wienerTimeout):
-                wiener = wienerAttack.WienerAttack(self.modulus, self.e)
+                wiener = wienerAttack.WienerAttack(n, e)
                 if wiener.p is not None and wiener.q is not None:
                     self.p = wiener.p
                     self.q = wiener.q
@@ -169,22 +173,22 @@ class RSATool:
     # https://en.wikipedia.org/wiki/Fermat's_factorization_method
     # Fermat factorization method written by me, inspired from wikipedia :D
     # Limit is the number of a's to try.
-    def fermatAttack(self,N="modulus",limit=100,fermatTimeout=3*60):
-        if(N=="modulus"): N = self.modulus
+    def fermatAttack(self,n="n",limit=100,fermatTimeout=3*60):
+        if(n=="n"): n = self.modulus
         try:
             with timeout(seconds=fermatTimeout):
-                a = self.floorSqrt(N)+1
-                b2 = a*a - N
+                a = self.floorSqrt(n)+1
+                b2 = a*a - n
                 for i in range(limit):
                     if(self.isLastDigitPossibleSquare(b2)):
                         b = self.floorSqrt(b2)
-                        if(b**2 == a*a-N):
+                        if(b**2 == a*a-n):
                             #We found the factors!
                             self.p = a+b
                             self.q = a-b
                             return
                     a = a+1
-                    b2 = a*a-N
+                    b2 = a*a-n
                 if(i==limit-1):
                     print("[x] Fermat Iteration Limit Exceeded")
         except TimeoutError:
@@ -312,13 +316,13 @@ class RSATool:
 
     #------------END Fermat Factorization SECTION-------------#
     #----------------BEGIN SMALL PRIME SECTION----------------#
-    def smallPrimes(self,N="modulus",upperlimit=1000000):
-        if(N=="modulus"): N = self.modulus
+    def smallPrimes(self,n="n",upperlimit=1000000):
+        if(n=="n"): n = self.modulus
         from sympy import sieve
         for i in sieve.primerange(1,upperlimit):
-            if(N % i == 0):
+            if(n % i == 0):
                 self.p = i
-                self.q = N // i
+                self.q = n // i
                 return
 
     #-----------------END SMALL PRIME SECTION-----------------#
@@ -379,7 +383,7 @@ class RSATool:
 
     #-----------------END POLLADS P-1 SECTION-----------------#
     #---------------BEGIN POLLARDS RHO SECTION----------------#
-    def f(self,x):
+    def pollardf(self,x):
         return (self.pollardRhoConstant2*x*x + self.pollardRhoConstant1) % self.modulus
 
     def pollardsRho(self,n="modulus",rhoTimeout=5*60):
@@ -399,7 +403,7 @@ class RSATool:
                     #if(i%100000==0):
                         #print("on iteration %s " % i )
                     #Calculate GCD(n, x_k - x_(k/2)), to conserve memory I'm popping x_k/2
-                    x_k = self.f(i)
+                    x_k = self.pollardf(i)
                     xValues.append(x_k)
                     x_k2 = xValues.pop(0)
                     #if x_k2 >= x_k, their difference is negative and thus we can't do the GCD
@@ -413,7 +417,7 @@ class RSATool:
                             return (commonDivisor, n // commonDivisor)
                 else:
                     #Just append new x value
-                    xValues.append(self.f(i))
+                    xValues.append(self.pollardf(i))
                 i+=1
 
     #-----------------END POLLADS RHO SECTION-----------------#

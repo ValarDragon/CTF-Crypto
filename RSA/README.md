@@ -16,6 +16,7 @@ I have used methods in here for every RSA problem I have encountered in CTFs.
 ### RSA specific methods
 * Partial Key Recovery for n/2 bits of the private key
 * TODO Partial Key Recovery for n/4 bits of the private key
+* Chinese Remainder Theorem full private key recovery
 * Decoding despite invalid Public Exponent
-* Hastad's Attack
-* Franklin Reiter Related Message Attack
+* Hastad's Attack (Not tested)
+* Common Modulus, Common public Exponent

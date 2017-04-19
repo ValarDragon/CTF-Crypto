@@ -16,6 +16,7 @@ So what we do is we split the problem into then solving the DLP mod each prime f
 We then CRT our solutions.
 
 Since we have general purpose O(Sqrt(N)) algorithms for solving a discrete log, this reduces the complexity of solving the discrete log to O(sqrt(Largest prime factor of N))
-It is because of this that the modulii for discrete log problems are safe primes. (Since the order of a finite field is what is used, and the order of a finite field modulo prime p is p-1, you want it to have the largest prime factor it can, hence being a safe prime.)
+It is because of this that the modulii for discrete log problems are safe primes.
+(Since the order of a finite field is what is used, and the order of a finite field modulo prime p is p-1, you want it to have the largest prime factor it can, hence being a safe prime.)
 
 This also works for all finite cyclic groups, such as Elliptic Curves.

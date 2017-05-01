@@ -326,24 +326,6 @@ class RSATool:
                 return
 
     #-----------------END SMALL PRIME SECTION-----------------#
-    #--------------BEGIN HASTADS ATTACK SECTION---------------#
-    def hastads(self,NArray,CiphertextArray,pubexp="pubexp"):
-        # Indices of NArrays match up with CiphertextArray
-        if(len(NArray) != len(CiphertextArray)):
-            return "Length of Modulii array and CiphertextArray are not equal"
-        if(pubexp == "pubexp"):
-            pubexp = len(NArray)
-        if(pubexp < len(NArray)):
-            return "Not enough Modulii / Ciphertext pairs"
-        ModulusValueArray = {}
-        for i in range(pubexp):
-            ModulusValueArray[NArray[i]] = [CiphertextArray[i]]
-        CRTVal,modulus = self.chineseRemainderTheorem(ModulusValueArray)
-        import sympy as sp
-        msg = sp.root(CRTVal[0],pubexp)
-        return msg
-
-    #---------------END HASTADS ATTACK SECTION----------------#
     #----------------BEGIN POLLARDS P-1 SECTION---------------#
 
     #Pollard P minus 1 factoring, using the algorithm as described by

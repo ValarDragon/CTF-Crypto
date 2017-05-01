@@ -18,7 +18,10 @@ I have used methods in here for every RSA problem I have encountered in CTFs.
 * TODO Partial Key Recovery for n/4 bits of the private key
 * Chinese Remainder Theorem full private key recovery
 * Decoding despite invalid Public Exponent
+
+### Low Public Exponent
 * Hastad's Attack
 * Hastad's Attack with Linear Padding (UNTESTED)
 * Common Modulus, Common public Exponent
 * Python RSA bleichenbacher-06 signature forgery
+* Known message format/prefix

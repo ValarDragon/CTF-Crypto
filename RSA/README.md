@@ -25,3 +25,4 @@ I have used methods in here for every RSA problem I have encountered in CTFs.
 * Common Modulus, Common public Exponent
 * Python RSA bleichenbacher-06 signature forgery
 * Known message format/prefix
+* Coppersmith Shortpad Attack

@@ -23,10 +23,14 @@ Note that this is Linux only, due to my usage of "signal" for timeouts.
 * TODO Partial Key Recovery for n/4 bits of the private key
 * Chinese Remainder Theorem full private key recovery
 * Decoding despite invalid Public Exponent
-* Hastad's Attack
-* Hastad's Attack with Linear Padding (UNTESTED)
+
+### Low Public Exponent
+* Hastad's Broadcast Attack
+* Hastad's Broadcast Attack with Linear Padding
 * Common Modulus, Common public Exponent
 * Python RSA bleichenbacher-06 signature forgery
+* Known message format/prefix
+* Coppersmith Shortpad Attack
 
 ## Diffie Hellman
 

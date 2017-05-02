@@ -33,9 +33,11 @@ def CoppersmithShortPadAttack(e,n,C1,C2,eps=1/30):
     g2 = (x+y)^e - C2
     res = g1.resultant(g2)
     P.<y> = PolynomialRing(ZmodN)
+    print("----------------------------------------------------------------------")
     print("This requires a bit of manual work b/c idk how to convert a" +
-    " Multivariate PolynomialRing to a PolynomialRing mod N through code in sage")
+    " Multivariate PolynomialRing to a Univraiate PolynomialRing mod N through code in sage")
     print("So you need to just copy the following polynomial, and paste it back")
+    print("----------------------------------------------------------------------")
     raw_input("Press enter to get the polynomial")
     print(str(res).replace('^','**'))
     rres = input()

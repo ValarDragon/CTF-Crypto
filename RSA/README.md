@@ -20,8 +20,8 @@ I have used methods in here for every RSA problem I have encountered in CTFs.
 * Decoding despite invalid Public Exponent
 
 ### Low Public Exponent
-* Hastad's Attack
-* Hastad's Attack with Linear Padding (UNTESTED)
+* Hastad's Broadcast Attack
+* Hastad's Broadcast Attack with Linear Padding
 * Common Modulus, Common public Exponent
 * Python RSA bleichenbacher-06 signature forgery
 * Known message format/prefix

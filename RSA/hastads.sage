@@ -16,7 +16,7 @@ def hastads(cArray,nArray,e=3):
         print("CiphertextArray, ModulusArray, need to be of the same length, and the same size as the public exponent")
 
 
-def linearPaddingHastads(cArray,nArray,aArray,bArray,e=3):
+def linearPaddingHastads(cArray,nArray,aArray,bArray,e=3,eps=1/8):
     """
     Performs Hastads attack on raw RSA with no padding.
     This is for RSA encryptions of the form: cArray[i] = pow(aArray[i]*msg + bArray[i],e,nArray[i])
@@ -45,12 +45,45 @@ def linearPaddingHastads(cArray,nArray,aArray,bArray,e=3):
         P.<x> = PolynomialRing(Zmod(prod(nArray)))
         gArray = [-1]*e
         for i in range(e):
-            gArray[i] = TArray[i]*pow(aArray[i]*x + bArray[i],e)
+            gArray[i] = TArray[i]*(pow(aArray[i]*x + bArray[i],e) - cArray[i])
         g = sum(gArray)
-        g.monic()
+        g = g.monic()
         # Use Sage's inbuilt coppersmith method
-        return g.small_roots()
+        roots = g.small_roots(epsilon=eps)
+        if(len(roots)== 0):
+            print("No Solutions found")
+            return -1
+        return roots[0]
 
     else:
         print("CiphertextArray, ModulusArray, and the linear padding arrays need to be of the same length," +
          "and the same size as the public exponent")
+
+def testLinearPadding():
+    from Crypto.PublicKey import RSA
+    import random
+    import binascii
+    flag = "flag{Th15_1337_Msg_is_a_secret}"
+    flag = int(binascii.hexlify(flag),16)
+    e = 3
+    nArr = [-1]*e
+    cArr = [-1]*e
+    aArr = [-1]*e
+    bArr = [-1]*e
+    randUpperBound = pow(2,500)
+    for i in range(e):
+        key = RSA.generate(2048)
+        nArr[i] = key.n
+        aArr[i] = random.randint(1,randUpperBound)
+        bArr[i] = random.randint(1,randUpperBound)
+        cArr[i] = pow(flag*aArr[i]+bArr[i],e,key.n)
+    msg = linearPaddingHastads(cArr,nArr,aArr,bArr,e=e,eps=1/8)
+    if(msg==flag):
+        print("Hastad's solver with linear padding is working! We got message: ")
+    msg = hex(int(msg))[2:]
+    if(msg[-1]=='L'):
+        msg = msg[:-1]
+    if(len(msg)%2 == 1):
+        msg = '0' + msg
+    print(msg)
+    print(binascii.unhexlify(msg))

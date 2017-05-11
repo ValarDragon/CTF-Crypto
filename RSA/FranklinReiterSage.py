@@ -62,11 +62,11 @@ def testCoppersmithShortPadAttack():
     import binascii
     M = "flag{This_Msg_Is_2_1337}"
     M = int(binascii.hexlify(M),_sage_const_16 )
-    e = _sage_const_3 
-    nBitSize =  _sage_const_4096 
+    e = _sage_const_3
+    nBitSize =  _sage_const_4096
     key = RSA.generate(_sage_const_4096 )
     #Give a bit of room, otherwhise the epsilon has to be tiny, and small roots will take forever
-    m = int(math.floor(nBitSize/(e*e))) - _sage_const_220 
+    m = int(math.floor(nBitSize/(e*e))) - _sage_const_220
     assert (m > len(bin(M)[_sage_const_2 :]))
     r1 = random.randint(_sage_const_1 ,pow(_sage_const_2 ,m))
     r2 = random.randint(r1,pow(_sage_const_2 ,m))
@@ -80,7 +80,7 @@ def testFranklinReiter():
     p = random_prime(_sage_const_2 **_sage_const_512 )
     q = random_prime(_sage_const_2 **_sage_const_512 )
     n = p * q # 1024-bit modulus
-    e = _sage_const_11 
+    e = _sage_const_11
 
     m = randint(_sage_const_0 , n) # some message we want to recover
     r = randint(_sage_const_0 , n) # random padding
@@ -92,4 +92,3 @@ def testFranklinReiter():
     print(recoveredM)
     assert recoveredM==m
     print("They are equal!")
-

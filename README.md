@@ -3,7 +3,8 @@ CTF Crypto
 This contains the code I use to perform various Cryptography Attacks in CTFs.
 This only contains attacks on common cryptography systems, not custom cryptosystems / hashing functions made by the CTF creators.
 
-All code is designed for python3, though it likely can be modified for python2 by removing timeouts.
+The RSA tool is designed for python3, though it likely can be modified for python2 by removing timeouts.
+The files with Sage in the name are designed for sage. the `.sage` extension is the human readable version, the `Sage.py` version is the preparsed version which you can import into sage. 
 
 ## RSA Tool
 

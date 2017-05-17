@@ -40,12 +40,8 @@ def linearPaddingHastads(cArray,nArray,aArray,bArray,e=_sage_const_3 ,eps=_sage_
             bArray[i] = Integer(bArray[i])
         TArray = [-_sage_const_1 ]*e
         for i in range(e):
-            arrayToCRT = [-_sage_const_1 ]*e
-            for j in range(e):
-                if(j==i):
-                    arrayToCRT[j] = _sage_const_1 
-                else:
-                    arrayToCRT[j] = _sage_const_0 
+            arrayToCRT = [_sage_const_0 ]*e
+            arrayToCRT[i] = 1
             TArray[i] = crt(arrayToCRT,nArray)
         P = PolynomialRing(Zmod(prod(nArray)), names=('x',)); (x,) = P._first_ngens(1)
         gArray = [-_sage_const_1 ]*e
@@ -57,7 +53,7 @@ def linearPaddingHastads(cArray,nArray,aArray,bArray,e=_sage_const_3 ,eps=_sage_
         roots = g.small_roots(epsilon=eps)
         if(len(roots)== _sage_const_0 ):
             print("No Solutions found")
-            return -_sage_const_1 
+            return -_sage_const_1
         return roots[_sage_const_0 ]
 
     else:
@@ -70,7 +66,7 @@ def testLinearPadding():
     import binascii
     flag = "flag{Th15_1337_Msg_is_a_secret}"
     flag = int(binascii.hexlify(flag),_sage_const_16 )
-    e = _sage_const_3 
+    e = _sage_const_3
     nArr = [-_sage_const_1 ]*e
     cArr = [-_sage_const_1 ]*e
     aArr = [-_sage_const_1 ]*e
@@ -92,4 +88,3 @@ def testLinearPadding():
         msg = '0' + msg
     print(msg)
     print(binascii.unhexlify(msg))
-

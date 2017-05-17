@@ -35,12 +35,8 @@ def linearPaddingHastads(cArray,nArray,aArray,bArray,e=3,eps=1/8):
             bArray[i] = Integer(bArray[i])
         TArray = [-1]*e
         for i in range(e):
-            arrayToCRT = [-1]*e
-            for j in range(e):
-                if(j==i):
-                    arrayToCRT[j] = 1
-                else:
-                    arrayToCRT[j] = 0
+            arrayToCRT = [0]*e
+            arrayToCRT[i] = 1
             TArray[i] = crt(arrayToCRT,nArray)
         P.<x> = PolynomialRing(Zmod(prod(nArray)))
         gArray = [-1]*e

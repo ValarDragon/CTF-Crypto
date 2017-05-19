@@ -92,3 +92,4 @@ def testFranklinReiter():
     print(recoveredM)
     assert recoveredM==m
     print("They are equal!")
+    return True

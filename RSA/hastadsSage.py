@@ -64,7 +64,7 @@ def testLinearPadding():
     from Crypto.PublicKey import RSA
     import random
     import binascii
-    flag = "flag{Th15_1337_Msg_is_a_secret}"
+    flag = b"flag{Th15_1337_Msg_is_a_secret}"
     flag = int(binascii.hexlify(flag),_sage_const_16 )
     e = _sage_const_3
     nArr = [-_sage_const_1 ]*e
@@ -88,3 +88,5 @@ def testLinearPadding():
         msg = '0' + msg
     print(msg)
     print(binascii.unhexlify(msg))
+    if(binascii.unhexlify(msg)==flag):
+        return True

@@ -23,6 +23,7 @@ class RSATool:
         self.pollardRhoConstant2 = 1
         self.keyNotFound = "key not found"
 
+
     def factorModulus(self,pubKey="pubkey",e="e",n="n",outFileName=""):
         if(type(pubKey)==type("pubkey")):
             self.e = e
@@ -202,7 +203,7 @@ class RSATool:
         if(sieve%2 == 0):
             sieve2 = sieve // 2
             for num in range(1,sieve2+1):
-                mod = (num*num) % sieve
+                mod = pow(num,2,sieve)
                 if mod not in squaresModSieve:
                     squaresModSieve[mod] = [num]
                 else:
@@ -214,7 +215,7 @@ class RSATool:
             # There is a duplication issue using the above halving of the sieve.
             # and I don't want to add a delay by doing a search for duplicate values
             for num in range(1,sieve):
-                mod = (num*num) % sieve
+                mod = pow(num,2,sieve)
                 if mod not in squaresModSieve:
                     squaresModSieve[mod] = [num]
                 else:

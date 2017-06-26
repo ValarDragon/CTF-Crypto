@@ -5,6 +5,7 @@ This only contains attacks on common cryptography systems, not custom cryptosyst
 
 The RSA tool is designed for python3, though it likely can be modified for python2 by removing timeouts.
 The files with Sage in the name are designed for sage. the `.sage` extension is the human readable version, the `Sage.py` version is the preparsed version which you can import into sage. 
+*Please note this project is not abandoned. I am currently helping create a CTF, so I am not committing anything else to this repository until after the CTF is complete.*
 
 ## RSA Tool
 

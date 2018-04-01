@@ -10,7 +10,7 @@ def franklinReiter(n,e,r,c1,c2):
     f1 = X^e - c1
     f2 = (X + r)^e - c2
     # coefficient 0 = -m, which is what we wanted!
-    return (n-(compositeModulusGCD(f1,f2)).coefficients()[0])
+    return Integer(n-(compositeModulusGCD(f1,f2)).coefficients()[0])
 
   # GCD is not implemented for rings over composite modulus in Sage
   # so we do our own implementation. Its the exact same as standard GCD, but with
@@ -33,17 +33,14 @@ def CoppersmithShortPadAttack(e,n,C1,C2,eps=1/30):
     g2 = (x+y)^e - C2
     res = g1.resultant(g2)
     P.<y> = PolynomialRing(ZmodN)
-    print("----------------------------------------------------------------------")
-    print("This requires a bit of manual work b/c idk how to convert a" +
-    " Multivariate PolynomialRing to a Univraiate PolynomialRing mod N through code in sage")
-    print("So you need to just copy the following polynomial, and paste it back")
-    print("----------------------------------------------------------------------")
-    raw_input("Press enter to get the polynomial")
-    print(str(res).replace('^','**'))
-    rres = input()
+    # Convert Multivariate Polynomial Ring to Univariate Polynomial Ring
+    rres = 0
+    for i in range(len(res.coefficients())):
+        rres += res.coefficients()[i]*(y^(res.exponents()[i][1]))
 
     diff = rres.small_roots(epsilon=eps)
     recoveredM1 = franklinReiter(n,e,diff[0],C1,C2)
+    print(recoveredM1)
     print("Message is the following hex, but potentially missing some zeroes in the binary from the right end")
     print(hex(recoveredM1))
     print("Message is one of:")
@@ -55,7 +52,7 @@ def CoppersmithShortPadAttack(e,n,C1,C2,eps=1/30):
             msg = msg[:2]
         print(binascii.unhexlify(msg))
 
-def testCoppersmithShortPadAttack():
+def testCoppersmithShortPadAttack(eps=1/25):
     from Crypto.PublicKey import RSA
     import random
     import math
@@ -63,18 +60,18 @@ def testCoppersmithShortPadAttack():
     M = "flag{This_Msg_Is_2_1337}"
     M = int(binascii.hexlify(M),16)
     e = 3
-    nBitSize =  4096
-    key = RSA.generate(4096)
+    nBitSize =  8192
+    key = RSA.generate(nBitSize)
     #Give a bit of room, otherwhise the epsilon has to be tiny, and small roots will take forever
-    m = int(math.floor(nBitSize/(e*e))) - 220
-    assert (m > len(bin(M)[2:]))
+    m = int(math.floor(nBitSize/(e*e))) - 400
+    assert (m < nBitSize - len(bin(M)[2:]))
     r1 = random.randint(1,pow(2,m))
     r2 = random.randint(r1,pow(2,m))
     M1 = pow(2,m)*M + r1
     M2 = pow(2,m)*M + r2
     C1 = Integer(pow(M1,e,key.n))
     C2 = Integer(pow(M2,e,key.n))
-    CoppersmithShortPadAttack(e,key.n,C1,C2)
+    CoppersmithShortPadAttack(e,key.n,C1,C2,eps)
 
 def testFranklinReiter():
     p = random_prime(2^512)

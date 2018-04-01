@@ -1,11 +1,11 @@
 CTF Crypto
 =======
 This contains the code I use to perform various Cryptography Attacks in CTFs.
-This only contains attacks on common cryptography systems, not custom cryptosystems / hashing functions made by the CTF creators.
+This only contains attacks on common cryptography systems, not custom cryptosystems / hashing functions made by the CTF creators. If you have any suggestions for attacks to implement, raise a github issue.
 
 The RSA tool is designed for python3, though it likely can be modified for python2 by removing timeouts.
-The files with Sage in the name are designed for sage. the `.sage` extension is the human readable version, the `Sage.py` version is the preparsed version which you can import into sage. 
-*Please note this project is not abandoned. I am currently helping create a CTF, so I am not committing anything else to this repository until after the CTF is complete.*
+The files with Sage in the name are designed for sage. the `.sage` extension is the human readable version, the `Sage.py` version is the preparsed version which you can import into sage.
+*Please note this project is not abandoned. I am currently helping create a CTF, so there are certain things I can't commit to this repository until after the CTF is complete.*
 
 ## RSA Tool
 
@@ -38,3 +38,7 @@ Note that this is Linux only, due to my usage of "signal" for timeouts.
 
 * Baby Step Giant Step Algorithm
 * Pollards Kangaroo/Lambda Algorithm
+
+## Pairings
+
+* Rogue Public Key for BLS signatures
